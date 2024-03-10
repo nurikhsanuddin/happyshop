@@ -7,7 +7,7 @@
       TH
     </a>
     <a href="{{ route('home') }}" class="simple-text logo-normal">
-      Toko Happy Shop
+      Toko Happy
     </a>
   </div>
   <div class="sidebar-wrapper" id="sidebar-wrapper">
