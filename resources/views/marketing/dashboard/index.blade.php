@@ -27,7 +27,7 @@
         <div class="card card-chart">
             <div class="card-header">
                 <h5 class="card-category">Total Penjualan Hari ini</h5>
-                <h4 class="card-title">{{ $products }}</h4>
+                <h4 class="card-title">{{format_uang($hariIni) }}</h4>
                 <div class="dropdown">
                     <button type="button" class="btn btn-round btn-outline-default dropdown-toggle btn-simple btn-icon no-caret" data-toggle="dropdown">
                         <i class="now-ui-icons loader_gear"></i>
@@ -48,7 +48,7 @@
         <div class="card card-chart">
             <div class="card-header">
                 <h5 class="card-category">Total TPenjualan Bulan Ini</h5>
-                <h4 class="card-title">{{ $transactions }}</h4>
+                <h4 class="card-title">{{ format_uang($bulanIni) }}</h4>
                 <div class="dropdown">
                     <button type="button" class="btn btn-round btn-outline-default dropdown-toggle btn-simple btn-icon no-caret" data-toggle="dropdown">
                         <i class="now-ui-icons loader_gear"></i>
@@ -80,10 +80,14 @@
     const myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($result['product']) !!},
+            labels: {
+                !!json_encode($result['product']) !!
+            },
             datasets: [{
                 label: '# Total Penjualan',
-                data: {!! json_encode($result['total']) !!},
+                data: {
+                    !!json_encode($result['total']) !!
+                },
 
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.2)',
@@ -112,6 +116,6 @@
             }
         }
     });
-    </script>
-     
+</script>
+
 @endpush

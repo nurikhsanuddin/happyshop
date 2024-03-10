@@ -10,7 +10,7 @@ class Transaction extends Model
     use HasFactory;
     protected $table = 'transaction';
     protected $guarded = [];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);

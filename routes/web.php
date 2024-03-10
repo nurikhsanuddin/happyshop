@@ -137,6 +137,7 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'isCashier'])->group
         Route::post('addToCart', [KasirTransactionController::class, 'addToCart'])->name('addToCart');
         Route::delete('deleteCart', [KasirTransactionController::class, 'deleteCart'])->name('deleteCart');
         Route::get('totalBuy', [KasirTransactionController::class, 'totalBuy'])->name('totalBuy');
+        Route::get('getPembeli', [KasirTransactionController::class, 'getPembeli'])->name('getPembeli');
         Route::post('pay', [KasirTransactionController::class, 'pay'])->name('pay');
         Route::get('show/{id}', [KasirTransactionController::class, 'show'])->name('show');
     });
@@ -174,6 +175,7 @@ Route::prefix('marketing')->name('marketing.')->middleware(['auth', 'isMarketing
         Route::delete('deleteCart', [MarketingTransactionController::class, 'deleteCart'])->name('deleteCart');
         Route::get('totalBuy', [MarketingTransactionController::class, 'totalBuy'])->name('totalBuy');
         Route::post('pay', [MarketingTransactionController::class, 'pay'])->name('pay');
+        Route::post('updateChartStatus', [MarketingTransactionController::class, 'updateChartStatus'])->name('updateChartStatus');
         Route::get('show/{id}', [MarketingTransactionController::class, 'show'])->name('show');
     });
 });

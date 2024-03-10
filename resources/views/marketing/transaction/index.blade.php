@@ -19,7 +19,7 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-header justify-content-between d-flex d-inline">
-                <h5 class="card-title">Order Produk dulu ya</h5>
+                <!-- <h5 class="card-title">Order Produk dulu ya</h5> -->
                 <h5 class="card-title">Marketing : {{ auth()->user()->name }}</h5>
             </div>
 
@@ -35,33 +35,43 @@
                         </select>
 
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="get_product_name">Nama Produk</label>
                         <input type="text" id="get_product_name" disabled placeholder="Nama" class="form-control">
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="get_product_price">Harga</label>
                         <input type="text" id="get_product_price" placeholder="Harga" class="form-control">
                     </div>
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="get_product_quantity">Jumlah</label>
                         <input type="number" id="get_product_quantity" disabled placeholder="Jumlah" class="form-control" min="0">
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="get_product_total">Total Harga</label>
                         <input type="text" id="get_product_total" disabled placeholder="Total Harga" class="form-control">
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label for="nama_pembeli">Nama Pembeli</label>
+                        <input type="text" id="nama_pembeli" placeholder="Masukkan Nama Pembeli" class="form-control">
+                    </div>
+                    <div class="col-12 mt-1">
+                        <span class="badge bg-warning">Nama pembeli harus sama</span>
                     </div>
                     <div class="col-12" style="margin-top: 10px;">
                         <input type="button" value="Tambahkan" id="addToCart" disabled class="btn btn-primary text-white">
                     </div>
                 </div>
+
+
                 <div class="table-responsive mt-3">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
+                                <td>Nama Pembeli</td>
                                 <td>Nama Produk</td>
                                 <td>Harga Asli</td>
                                 <td>Jumlah</td>
@@ -77,7 +87,7 @@
                         </div>
                     </table>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary" id="tPayment"> simpan</button>
+                        <button type="submit" value="simpan" class="btn btn-primary" id="simpan"> selesai</button>
                     </div>
                 </div>
             </div>
@@ -162,6 +172,7 @@
 
                     $.each(response.data, function(key, item) {
                         let content = `<tr>\
+                        <td>${item.nama_pembeli}</td>\
                         <td>${item.product.name}</td>\
                         <td>${item.product.price}</td>\
                         <td>${item.quantity}</td>\
@@ -245,12 +256,40 @@
         //         }
         //     })
         // })
+        const simpan = document.getElementById('simpan');
+        simpan.addEventListener('click', function() {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'POST', // Ubah metode menjadi POST
+                dataType: 'json',
+                url: "{{ route('marketing.transaction.updateChartStatus') }}",
+                success: function(data) {
+                    // Tampilkan pesan sukses
+                    alert('Status berhasil diperbarui.');
+
+                    // Refresh data tabel
+                    fetchstudent();
+                },
+                error: function() {
+                    // Tampilkan pesan error
+                    alert('Gagal memperbarui status.');
+                }
+            });
+        })
         const addToCart = document.getElementById('addToCart');
         addToCart.addEventListener('click', function() {
             $productCode = $('#get_product_code');
             $productQuantity = $('#get_product_quantity');
             $productTotal = $('#get_product_total');
+            $namaPembeli = $('#nama_pembeli');
             // $productTotal = $('#get_product_total');
+            if ($namaPembeli.val() === '') {
+                // Munculkan pesan jika nama_pembeli kosong
+                $('.pesan').html('<div class="alert alert-danger" role="alert">Nama pembeli tidak boleh kosong!</div>');
+                return; // Hentikan eksekusi lebih lanjut
+            }
             $('#addToCart').prop('disabled', true);
             $.ajax({
                 headers: {
@@ -261,6 +300,7 @@
                 data: {
                     'product_code': $productCode.val(),
                     'quantity': $productQuantity.val(),
+                    'nama_pembeli': $namaPembeli.val(),
                     'total': $productTotal.val()
                 },
                 url: "{{ route('marketing.transaction.addToCart') }}",
@@ -382,6 +422,8 @@
             }
             vReturn.value = result;
         })
+
+
     })
 </script>
 

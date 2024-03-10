@@ -12,25 +12,25 @@
   </div>
   <div class="sidebar-wrapper" id="sidebar-wrapper">
     <ul class="nav">
-      <li class="active ">
+      <li class="@if(request()->routeIs('kasir.dashboard.index')) active @endif">
         <a href="{{ route('kasir.dashboard.index') }}">
           <i class="now-ui-icons design_app"></i>
           <p>Dashboard</p>
         </a>
       </li>
-      <li>
+      <li class="@if(request()->routeIs('kasir.transaction.index')) active @endif">
         <a href="{{ route('kasir.transaction.index') }}">
           <i class="now-ui-icons shopping_cart-simple"></i>
           <p>Transaksi</p>
         </a>
       </li>
-      <li>
+      <li class="@if(request()->routeIs('kasir.report.index')) active @endif">
         <a href="{{ route('kasir.report.index') }}">
           <i class="now-ui-icons education_paper"></i>
           <p>Laporan</p>
         </a>
       </li>
-      <li>
+      <li class="@if(request()->routeIs('kasir.profile.index')) active @endif">
         <a href="{{ route('kasir.profile.index') }}">
           <i class="now-ui-icons business_badge"></i>
           <p>Akun Saya</p>

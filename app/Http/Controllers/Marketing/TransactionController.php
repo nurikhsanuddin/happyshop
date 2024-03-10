@@ -116,10 +116,24 @@ class TransactionController extends Controller
         //     ], 500);
         // }
         try {
+            // $random = Str::random(10);
+            $productTransaction = new ProductTransaction();
+            // $productTransaction->transaction_id = auth()->user()->id;
+            $productTransaction->user_id = auth()->user()->id;
+            $productTransaction->product_id = $product->id;
+            $productTransaction->quantity = $request->quantity;
+            $productTransaction->nama_pembeli = $request->nama_pembeli;
+            $productTransaction->status = '0';
+            $total =  $request->total;
+            $total = preg_replace('/[^0-9]/', '', $total);
+            $productTransaction->hargajual =  $total;
+            $productTransaction->save();
+
             $chart = new Chart();
             $chart->user_id = auth()->user()->id;
             $chart->product_id = $product->id;
             $chart->quantity = $request->quantity;
+            $chart->nama_pembeli = $request->nama_pembeli;
             $chart->status = '0';
             $total =  $request->total;
             $total = preg_replace('/[^0-9]/', '', $total);
@@ -144,6 +158,27 @@ class TransactionController extends Controller
             ], 500);
         }
     }
+    public function updateChartStatus(Request $request)
+    {
+        try {
+            // Update status di tabel Chart
+            Chart::where('user_id', auth()->user()->id)->update(['status' => '1']);
+
+            // Berikan respons berhasil
+            return response()->json([
+                'message' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            // Tangkap pesan kesalahan
+            $errorMessage = $e->getMessage();
+
+            // Berikan respons dengan pesan kesalahan
+            return response()->json([
+                'message' => 'gagal gais',
+                'error' => $errorMessage
+            ], 500);
+        }
+    }
     public function deleteCart(Request $request)
     {
         $cart = Chart::find($request->id);
@@ -153,6 +188,8 @@ class TransactionController extends Controller
             'data' => $cart
         ], 200);
     }
+
+
     public function totalBuy()
     {
         $productTransactions = Chart::where('user_id', auth()->user()->id)
