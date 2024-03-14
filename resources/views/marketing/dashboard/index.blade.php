@@ -27,7 +27,8 @@
         <div class="card card-chart">
             <div class="card-header">
                 <h5 class="card-category">Total Penjualan Hari ini</h5>
-                <h4 class="card-title">{{format_uang($hariIni) }}</h4>
+                <h4 class="card-title">{{ isset($hariIni) ? format_uang($hariIni) : '0' }}</h4>
+
                 <div class="dropdown">
                     <button type="button" class="btn btn-round btn-outline-default dropdown-toggle btn-simple btn-icon no-caret" data-toggle="dropdown">
                         <i class="now-ui-icons loader_gear"></i>
@@ -48,7 +49,8 @@
         <div class="card card-chart">
             <div class="card-header">
                 <h5 class="card-category">Total TPenjualan Bulan Ini</h5>
-                <h4 class="card-title">{{ format_uang($bulanIni) }}</h4>
+                <h4 class="card-title">{{ isset($bulanIni) ? format_uang($bulanIni) : '0' }}</h4>
+
                 <div class="dropdown">
                     <button type="button" class="btn btn-round btn-outline-default dropdown-toggle btn-simple btn-icon no-caret" data-toggle="dropdown">
                         <i class="now-ui-icons loader_gear"></i>
