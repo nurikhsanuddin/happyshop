@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kasir;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductTransaction;
+use App\Models\Chart;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -124,8 +125,14 @@ class TransactionController extends Controller
     }
     public function deleteCart(Request $request)
     {
-        $cart = ProductTransaction::find($request->id);
-        $cart->delete();
+        $cart = Chart::find($request->id);
+        if ($cart) {
+            $cart->delete();
+        }
+        $kasir = ProductTransaction::find($request->id);
+        if ($kasir) {
+            $kasir->delete();
+        }
         return response()->json([
             'message' => 'success',
             'data' => $cart
@@ -158,13 +165,60 @@ class TransactionController extends Controller
             'data' => $totalBuy
         ]);
     }
+    // public function pay(Request $request)
+    // {
+    //     DB::beginTransaction();
+    //     try {
+    //         $customer_name = $request->customer_name;
+    //         $productTransaction = ProductTransaction::where('nama_pembeli', $customer_name)->where('status', '0');
+    //         if (count($productTransaction->get())) {
+
+    //             $random = Str::random(10);
+
+    //             $transaction = new Transaction;
+    //             $transaction->user_id = auth()->user()->id;
+    //             $transaction->transaction_code = auth()->user()->id . $random;
+    //             $transaction->no_hp = $request->no_hp;
+    //             $transaction->alamat = $request->alamat;
+    //             $transaction->pay = $request->payment;
+    //             $transaction->return = $request->return;
+    //             $transaction->purchase_order = $request->subtotal;
+    //             // $transaction->purchase_order = $totalPurchase;
+    //             $transaction->customer_name = $customer_name ?? null;
+    //             $transaction->save();
+    //             // dd($transaction);
+    //             $productTransaction->update([
+    //                 'transaction_id' => $transaction->id,
+    //                 'status' => '1',
+    //             ]);
+    //             DB::commit();
+    //         }
+    //         toast('Pembayaran berhasil')->autoClose(2000)->hideCloseButton();
+    //         return redirect()->route('kasir.report.show', $transaction->id);
+    //     } catch (\Exception $e) {
+    //         $var = response()->json([
+    //             'message' => 'failed',
+    //             'data' => $e
+    //         ], 500);
+    //     }
+    //     return $var;
+    // }
     public function pay(Request $request)
     {
         DB::beginTransaction();
         try {
             $customer_name = $request->customer_name;
-            $productTransaction = ProductTransaction::where('nama_pembeli', $customer_name)->where('status', '0');
-            if (count($productTransaction->get())) {
+            $productTransactions = ProductTransaction::where('nama_pembeli', $customer_name)->where('status', '0')->get();
+
+            // Lakukan pembelian hanya jika ada transaksi yang sesuai
+            if ($productTransactions->count() > 0) {
+                // Memeriksa ketersediaan produk
+                foreach ($productTransactions as $productTransaction) {
+                    $product = Product::find($productTransaction->product_id);
+                    if (!$product || $product->quantity < $productTransaction->quantity) {
+                        throw new \Exception("Produk '{$productTransaction->product->name}' tidak mencukupi.");
+                    }
+                }
 
                 $random = Str::random(10);
 
@@ -176,24 +230,36 @@ class TransactionController extends Controller
                 $transaction->pay = $request->payment;
                 $transaction->return = $request->return;
                 $transaction->purchase_order = $request->subtotal;
-                // $transaction->purchase_order = $totalPurchase;
                 $transaction->customer_name = $customer_name ?? null;
                 $transaction->save();
-                // dd($transaction);
-                $productTransaction->update([
-                    'transaction_id' => $transaction->id,
-                    'status' => '1',
-                ]);
+
+                foreach ($productTransactions as $productTransaction) {
+                    // Kurangi stok produk
+                    $product = Product::find($productTransaction->product_id);
+                    $product->quantity -= $productTransaction->quantity;
+                    $product->save();
+                }
+
+                foreach ($productTransactions as $productTransaction) {
+                    $productTransaction->update([
+                        'transaction_id' => $transaction->id,
+                        'status' => '1',
+                    ]);
+                }
+
                 DB::commit();
             }
             toast('Pembayaran berhasil')->autoClose(2000)->hideCloseButton();
             return redirect()->route('kasir.report.show', $transaction->id);
         } catch (\Exception $e) {
-            $var = response()->json([
-                'message' => 'failed',
-                'data' => $e
-            ], 500);
+            // Tangani kesalahan jika terjadi
+            // dd($e->getMessage());
+            DB::rollback();
+
+            $error_message = $e->getMessage(); // Mendapatkan pesan kesalahan dari Exception
+
+            toast('Gagal melakukan pembayaran: ' . $error_message)->autoClose(10000)->hideCloseButton();
+            return redirect()->back();
         }
-        return $var;
     }
 }

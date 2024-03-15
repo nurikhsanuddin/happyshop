@@ -10,7 +10,7 @@ class Marketing extends Model
     use HasFactory;
     protected $table = 'marketings';
     protected $guarded = [];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);

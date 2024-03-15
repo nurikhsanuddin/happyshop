@@ -30,7 +30,7 @@
                         <select class="js-example-basic-single" name="get_product_code" id="get_product_code" required style="width: 100% !important;">
                             <option value="" selected></option>
                             @foreach($products as $product)
-                            <option value="{{ $product->product_code }}">{{ $product->name }}</option>
+                            <option value="{{ $product->product_code }}">{{ $product->name }} (stok {{ $product->quantity }})</option>
                             @endforeach
                         </select>
 
@@ -169,21 +169,28 @@
                 dataType: "json",
                 success: function(response) {
                     $('tbody').html("");
-
-                    $.each(response.data, function(key, item) {
-                        let content = `<tr>\
-                        <td>${item.nama_pembeli}</td>\
-                        <td>${item.product.name}</td>\
-                        <td>${item.product.price}</td>\
-                        <td>${item.quantity}</td>\
-                        <td>${formatRupiah(item.price_sell)}</td>\
-                        <td><button type="button" value="${item.id}" data-id="${item.id}" class="btn btn-danger delete-btn btn-sm"><i class="fas fa-times-circle"></i></button></td>\
-                    \</tr>`;
-                        $('tbody').append(content);
-                    });
+                    if (response.data.length === 0) {
+                        // Jika data kosong, tambahkan pesan "Keranjang Kosong" ke dalam tabel
+                        let emptyCartMessage = '<tr><td colspan="6" class="text-center">Keranjang kosong</td></tr>';
+                        $('tbody').append(emptyCartMessage);
+                    } else {
+                        // Jika ada data, tambahkan data ke dalam tabel seperti biasa
+                        $.each(response.data, function(key, item) {
+                            let content = `<tr>\
+                    <td>${item.nama_pembeli}</td>\
+                    <td>${item.product.name}</td>\
+                    <td>${item.product.price}</td>\
+                    <td>${item.quantity}</td>\
+                    <td>${formatRupiah(item.price_sell)}</td>\
+                    <td><button type="button" value="${item.id}" data-id="${item.id}" class="btn btn-danger delete-btn btn-sm"><i class="fas fa-times-circle"></i></button></td>\
+                \</tr>`;
+                            $('tbody').append(content);
+                        });
+                    }
                 }
             });
         }
+
         fetchstudent();
         getTotalBuy();
         let productCode = document.getElementById('get_product_code');
@@ -262,22 +269,25 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                type: 'POST', // Ubah metode menjadi POST
+                type: 'POST',
                 dataType: 'json',
                 url: "{{ route('marketing.transaction.updateChartStatus') }}",
                 success: function(data) {
                     // Tampilkan pesan sukses
                     alert('Status berhasil diperbarui.');
 
-                    // Refresh data tabel
-                    fetchstudent();
+                    // Memuat ulang halaman setelah 1 detik
+                    setTimeout(function() {
+                        location.reload();
+                    }, 100);
                 },
                 error: function() {
                     // Tampilkan pesan error
                     alert('Gagal memperbarui status.');
                 }
             });
-        })
+        });
+
         const addToCart = document.getElementById('addToCart');
         addToCart.addEventListener('click', function() {
             $productCode = $('#get_product_code');
@@ -328,25 +338,37 @@
 
         const customer_container = document.querySelector('.table');
         const thumbs = document.querySelectorAll('tombol');
-        customer_container.addEventListener('click', function(e) {
-            if (e.target.classList.contains('delete-btn')) {
-                let id = e.target.dataset.id;
-                e.target.disabled = true;
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    type: 'DELETE',
-                    dataType: 'json',
-                    data: {
-                        'id': id
-                    },
-                    url: "{{ route('marketing.transaction.deleteCart') }}",
-                });
-                fetchstudent();
-                getTotalBuy();
-            }
-        })
+        $('.table').on('click', '.delete-btn', function(e) {
+            let id = $(this).data('id');
+            $(this).prop('disabled', true);
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'DELETE',
+                dataType: 'json',
+                data: {
+                    'id': id
+                },
+                url: "{{ route('marketing.transaction.deleteCart') }}",
+                success: function() {
+                    // Hapus baris terkait dari tabel
+                    e.target.closest('tr').remove();
+
+                    // Periksa apakah keranjang kosong
+                    if ($('tbody').find('tr').length === 0) {
+                        $('#totalBuy').html(""); // Atur teks pada card-header "Total Belanja" menjadi kosong
+                    } else {
+                        getTotalBuy(); // Panggil kembali getTotalBuy() untuk memperbarui total belanja
+                    }
+                },
+                error: function() {
+                    // Handle error
+                }
+            });
+        });
+
+
         const productQuantity = document.getElementById('get_product_quantity');
 
         productQuantity.addEventListener('keyup', function() {
@@ -372,6 +394,8 @@
             }
         })
 
+
+
         function getTotalBuy() {
             $.ajax({
                 type: 'GET',
@@ -386,6 +410,7 @@
                 }
             })
         }
+
 
 
 

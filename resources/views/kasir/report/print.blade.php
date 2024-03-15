@@ -8,6 +8,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      font-size: 10px;
       margin: 0;
       padding: 0;
     }
@@ -26,7 +27,7 @@
 
     th,
     td {
-      padding: 8px;
+      padding: 1px;
       text-align: left;
     }
 
@@ -44,8 +45,9 @@
 
     .invoice-container {
       width: 100%;
-      padding: 20px;
+      /* padding: 10px; */
       box-sizing: border-box;
+
     }
   </style>
 </head>
@@ -53,9 +55,31 @@
 <body>
   <div class="invoice-container">
     <p>{{ App\Models\Company::take(1)->first()->name }}</p>
-    <p>{{ App\Models\Company::take(1)->first()->address }}</p>
-    <p>Kasir : {{ $transaction->user->name }}</p>
-    <p>Tanggal : {{ date('m-d-Y', strtotime($transaction->created_at)) }}</p>
+    <hr>
+
+    <table style="border: none;">
+      <tr style="border: none;">
+        <td style="border: none;">Nama Pelanggan:</td>
+        <td style="border: none;">{{ $transaction->customer_name ?? '' }}</td>
+      </tr>
+      <tr style="border: none;">
+        <td style="border: none;">Nomor Telp:</td>
+        <td style="border: none;">{{ $transaction->no_hp ?? '' }}</td>
+      </tr>
+      <tr style="border: none;">
+        <td style="border: none;">Alamat:</td>
+        <td style="border: none;">{{ $transaction->alamat ?? '' }}</td>
+      </tr>
+      <tr style="border: none;">
+        <td style="border: none;">Nama Marketing:</td>
+        <td style="border: none;">{{ $marketing->name ?? '' }}</td>
+      </tr>
+      <tr style="border: none;">
+        <td style="border: none;">Tanggal:</td>
+        <td style="border: none;">{{ date('m-d-Y', strtotime($transaction->created_at)) }}</td>
+      </tr style="border: none;">
+    </table>
+
 
     <hr>
 

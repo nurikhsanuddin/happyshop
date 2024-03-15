@@ -42,6 +42,11 @@
                   <td>{{ $transaction->customer_name ?? '' }}</td>
                 </tr>
                 <tr>
+                  <td>Nama Marketing</td>
+                  <td> : </td>
+                  <td>{{ $marketing->name ?? '' }}</td>
+                </tr>
+                <tr>
                   <td>No HP</td>
                   <td> : </td>
                   <td>{{ $transaction->no_hp ?? '' }}</td>

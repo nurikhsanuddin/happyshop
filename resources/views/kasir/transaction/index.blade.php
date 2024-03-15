@@ -193,25 +193,48 @@
 
         const customer_container = document.querySelector('.table');
         const thumbs = document.querySelectorAll('tombol');
-        customer_container.addEventListener('click', function(e) {
-            if (e.target.classList.contains('delete-btn')) {
-                let id = e.target.dataset.id;
-                e.target.disabled = true;
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    type: 'DELETE',
-                    dataType: 'json',
-                    data: {
-                        'id': id
-                    },
-                    url: "{{ route('kasir.transaction.delete') }}",
-                });
-                fetchstudent();
-                getTotalBuy();
-            }
-        })
+        $('.table').on('click', '.delete-btn', function(e) {
+            let id = $(this).data('id');
+            $(this).prop('disabled', true);
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'DELETE',
+                dataType: 'json',
+                data: {
+                    'id': id
+                },
+                url: "{{ route('kasir.transaction.deleteCart') }}",
+                success: function() {
+                    // Hapus baris terkait dari tabel
+                    e.target.closest('tr').remove();
+
+                    // Periksa apakah keranjang kosong
+                    if ($('tbody').find('tr').length === 0) {
+                        $('#totalBuy').html(""); // Atur teks pada card-header "Total Belanja" menjadi kosong
+                    } else {
+                        // Ambil total belanja baru setelah menghapus item
+                        $.ajax({
+                            type: 'GET',
+                            url: "{{ route('kasir.transaction.totalBuy') }}",
+                            dataType: 'json',
+                            success: function(data) {
+                                totalBuy.innerHTML = "Total " + formatRupiah(data.data, 'Rp. ');
+                            },
+                            error: function(data) {
+                                console.log('gagal');
+                            }
+                        });
+                    }
+                },
+                error: function() {
+                    // Handle error
+                }
+            });
+        });
+
+
 
         function formatRupiah(angka, prefix) {
             var number_string = angka.toString().replace(/[^,\d]/g, ''),

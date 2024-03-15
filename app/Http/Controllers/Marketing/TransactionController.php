@@ -116,10 +116,12 @@ class TransactionController extends Controller
         //     ], 500);
         // }
         try {
-            // $random = Str::random(10);
+            $randomNumber = random_int(1000000000, 9999999999); // Menghasilkan bilangan bulat acak antara 1 miliar hingga 9.999.999.999
+
             $productTransaction = new ProductTransaction();
             // $productTransaction->transaction_id = auth()->user()->id;
             $productTransaction->user_id = auth()->user()->id;
+            $productTransaction->id = $randomNumber;
             $productTransaction->product_id = $product->id;
             $productTransaction->quantity = $request->quantity;
             $productTransaction->nama_pembeli = $request->nama_pembeli;
@@ -131,6 +133,7 @@ class TransactionController extends Controller
 
             $chart = new Chart();
             $chart->user_id = auth()->user()->id;
+            $chart->id = $randomNumber;
             $chart->product_id = $product->id;
             $chart->quantity = $request->quantity;
             $chart->nama_pembeli = $request->nama_pembeli;
@@ -182,12 +185,39 @@ class TransactionController extends Controller
     public function deleteCart(Request $request)
     {
         $cart = Chart::find($request->id);
-        $cart->delete();
+        if ($cart) {
+            $cart->delete();
+        }
+        $kasir = ProductTransaction::find($request->id);
+        if ($kasir) {
+            $kasir->delete();
+        }
+
         return response()->json([
             'message' => 'success',
             'data' => $cart
         ], 200);
     }
+    // public function deleteCart(Request $request)
+    // {
+    //     $chart = Chart::find($request->id);
+    //     $productTransaction = $chart->productTransaction; // Ambil entri ProductTransaction yang terkait
+
+    //     if($chart && $productTransaction) {
+    //         $chart->delete();
+    //         $productTransaction->delete();
+
+    //         return response()->json([
+    //             'message' => 'success',
+    //             'data' => $chart // Anda mungkin ingin mengembalikan data lain yang relevan di sini
+    //         ], 200);
+    //     } else {
+    //         return response()->json([
+    //             'message' => 'error',
+    //             'data' => null // Atau beri respon yang sesuai jika entri tidak ditemukan
+    //         ], 404);
+    //     }
+    // }
 
 
     public function totalBuy()
@@ -198,8 +228,7 @@ class TransactionController extends Controller
 
         if ($productTransactions->isEmpty()) {
             return response()->json([
-                'message' => 'No transactions found',
-                'data' => null
+                'message' => 'kosong',
             ], 404);
         }
 
