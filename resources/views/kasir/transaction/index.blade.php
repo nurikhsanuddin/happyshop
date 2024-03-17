@@ -12,9 +12,7 @@
 </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <meta name="csrf-token" content="{{ csrf_token() }}" />
-<div class="pesan">
-
-</div>
+<div class="pesan"></div>
 <div class="row">
     <div class="col-8">
         <div class="card">
@@ -36,29 +34,8 @@
                         </select>
 
                     </div>
-                    <!-- <div class="col-4">
-                        <label for="get_product_name">Nama Produk</label>
-                        <input type="text" id="get_product_name" disabled placeholder="Nama" class="form-control">
-                    </div>
-                    <div class="col-4">
-                        <label for="get_product_price">Harga</label>
-                        <input type="text" id="get_product_price" disabled placeholder="Harga" class="form-control">
-                    </div> -->
                 </div>
                 <hr>
-                <!-- <div class="row">
-                    <div class="col-4">
-                        <label for="get_product_quantity">Jumlah</label>
-                        <input type="number" id="get_product_quantity" disabled placeholder="Jumlah" class="form-control" min="0">
-                    </div>
-                    <div class="col-4">
-                        <label for="get_product_total">Total Harga</label>
-                        <input type="text" id="get_product_total" disabled placeholder="Total Harga" class="form-control">
-                    </div>
-                    <div class="col-4" style="margin-top: 10px;">
-                        <input type="button" value="Tambahkan" id="addToCart" disabled class="btn btn-primary text-white">
-                    </div>
-                </div> -->
                 <div class="table-responsive mt-3">
                     <table class="table table-bordered">
                         <thead>
@@ -122,14 +99,15 @@
 </div>
 @endsection
 @push('scripts')
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.js-example-basic-single').select2();
         const totalBuy = document.getElementById('totalBuy');
+
         $('#get_costumer').on('change', function() {
             var selectedCustomer = $(this).val();
-            $('#customer_name').val(selectedCustomer || ''); // Jika tidak ada opsi yang dipilih, nilai input akan kosong
+            $('#customer_name').val(selectedCustomer || '');
 
             $.ajax({
                 type: 'GET',
@@ -140,6 +118,8 @@
                 },
                 success: function(data) {
                     totalBuy.innerHTML = "Total " + formatRupiah(data.data, 'Rp. ');
+                    $('#subtotal').val(data.data);
+                    hitungKembalian();
                 },
                 error: function(data) {
                     console.log('gagal');
@@ -170,29 +150,9 @@
                         $('tbody').append(content);
                     });
                 },
-
             });
-        })
+        });
 
-        function formatRupiah(angka) {
-            var number_string = angka.toString().replace(/[^,\d]/g, ''),
-                split = number_string.split(','),
-                sisa = split[0].length % 3,
-                rupiah = split[0].substr(0, sisa),
-                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-            // tambahkan titik jika yang di input sudah menjadi angka ribuan
-            if (ribuan) {
-                separator = sisa ? '.' : '';
-                rupiah += separator + ribuan.join('.');
-            }
-
-            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-            return rupiah;
-        }
-
-        const customer_container = document.querySelector('.table');
-        const thumbs = document.querySelectorAll('tombol');
         $('.table').on('click', '.delete-btn', function(e) {
             let id = $(this).data('id');
             $(this).prop('disabled', true);
@@ -207,26 +167,8 @@
                 },
                 url: "{{ route('kasir.transaction.deleteCart') }}",
                 success: function() {
-                    // Hapus baris terkait dari tabel
                     e.target.closest('tr').remove();
-
-                    // Periksa apakah keranjang kosong
-                    if ($('tbody').find('tr').length === 0) {
-                        $('#totalBuy').html(""); // Atur teks pada card-header "Total Belanja" menjadi kosong
-                    } else {
-                        // Ambil total belanja baru setelah menghapus item
-                        $.ajax({
-                            type: 'GET',
-                            url: "{{ route('kasir.transaction.totalBuy') }}",
-                            dataType: 'json',
-                            success: function(data) {
-                                totalBuy.innerHTML = "Total " + formatRupiah(data.data, 'Rp. ');
-                            },
-                            error: function(data) {
-                                console.log('gagal');
-                            }
-                        });
-                    }
+                    updateTotal(); // Perbarui total dan subtotal
                 },
                 error: function() {
                     // Handle error
@@ -234,7 +176,21 @@
             });
         });
 
-
+        function updateTotal() {
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('kasir.transaction.totalBuy') }}",
+                dataType: 'json',
+                success: function(data) {
+                    totalBuy.innerHTML = "Total " + formatRupiah(data.data, 'Rp. ');
+                    $('#subtotal').val(data.data);
+                    hitungKembalian();
+                },
+                error: function(data) {
+                    console.log('gagal');
+                }
+            });
+        }
 
         function formatRupiah(angka, prefix) {
             var number_string = angka.toString().replace(/[^,\d]/g, ''),
@@ -243,7 +199,6 @@
                 rupiah = split[0].substr(0, sisa),
                 ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
-            // tambahkan titik jika yang di input sudah menjadi angka ribuan
             if (ribuan) {
                 separator = sisa ? '.' : '';
                 rupiah += separator + ribuan.join('.');
@@ -255,28 +210,27 @@
 
         function hitungKembalian() {
             var totalBuyValue = parseInt($('#totalBuy').text().replace(/[^0-9]/g, ''));
-
             var paymentValue = parseInt($('#payment').val());
 
             if (!isNaN(totalBuyValue) && !isNaN(paymentValue)) {
                 var returnAmount = paymentValue - totalBuyValue;
                 $('#return').val(returnAmount);
                 $('#subtotal').val(totalBuyValue);
-                $('#tPayment').prop('disabled', returnAmount < 0); // Aktifkan tombol Bayar hanya jika kembalian >= 0
+                $('#tPayment').prop('disabled', returnAmount < 0);
             }
         }
 
-        // Panggil fungsi hitungKembalian saat nilai pembayaran berubah
         $('#payment').on('input', function() {
             hitungKembalian();
         });
 
-        // Panggil fungsi hitungKembalian saat total belanja berubah (misalnya saat memilih pelanggan baru)
         $('#totalBuy').bind("DOMSubtreeModified", function() {
             hitungKembalian();
         });
-
-    })
+    });
 </script>
+
+
+
 
 @endpush

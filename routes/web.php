@@ -95,14 +95,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'isAdmin'])->group(f
         Route::post('store', [TransactionController::class, 'store'])->name('store');
         Route::put('update', [TransactionController::class, 'update'])->name('update');
         Route::delete('delete', [TransactionController::class, 'delete'])->name('delete');
-        Route::get('show/{id}', [TransactionController::class, 'show'])->name('show');
+        Route::get('show/{id}', [TransactionController::class, 'show'])->name('show'); // Perbaikan: Hapus definisi ini jika sudah ada di atas
         Route::get('getProductCode', [TransactionController::class, 'getProductCode'])->name('getProductCode');
         Route::post('addToCart', [TransactionController::class, 'addToCart'])->name('addToCart');
         Route::delete('deleteCart', [TransactionController::class, 'deleteCart'])->name('deleteCart');
         Route::get('totalBuy', [TransactionController::class, 'totalBuy'])->name('totalBuy');
         Route::post('pay', [TransactionController::class, 'pay'])->name('pay');
-        Route::get('show/{id}', [TransactionController::class, 'show'])->name('show');
+        Route::get('kasir/transaction/totalBuy', [TransactionController::class, 'totalBuy'])->name('kasir.transaction.totalBuy');
     });
+
     Route::prefix('report')->name('report.')->group(function () {
         Route::get('', [ReportController::class, 'index'])->name('index');
         Route::get('show/{id}', [ReportController::class, 'show'])->name('show');
